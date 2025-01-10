@@ -1,0 +1,71 @@
+version: '3.7'
+
+services:
+  vue-app:
+    image: node:18-alpine
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+
+  exam_partie1-db:
+    image: postgres:16
+    container_name: exam_partie1-db
+    volumes:
+      - db_data:/var/lib/postgresql/data:delegated
+      - ./db-init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: exam_partie1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+
+  laravel-app:
+    image: php:8.2-fpm
+    container_name: laravel-app
+    working_dir: /var/www/html
+    volumes:
+      - ./backend-laravel:/var/www/html
+      - ./backend-laravel/php.ini:/usr/local/etc/php/php.ini
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: 'true'
+      APP_KEY: base64:I5ISOAwhmjC7DQ+CqE7kxm13107muB6YvVpjkYXkvBk=
+      DB_CONNECTION: pgsql
+      DB_HOST: exam_partie1-db
+      DB_PORT: 5432
+      DB_DATABASE: exam_partie1
+      DB_USERNAME: postgres
+      DB_PASSWORD: root
+    command: >
+      sh -c "
+        apt-get update && 
+        apt-get install -y libpq-dev && 
+        docker-php-ext-install pdo_pgsql pgsql && 
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && 
+        if [ ! -f /var/www/html/vendor/autoload.php ]; then composer install; fi && 
+        php artisan key:generate && 
+        php artisan serve --host=0.0.0.0 --port=8000
+      "
+  spring-boot:
+    image: openjdk:17-jdk-slim
+    container_name: spring-boot
+    volumes:
+      - ./backend-spring:/spring-boot
+    ports:
+      - "8099:8099"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    working_dir: /spring-boot 
+    command: ["sh", "-c", "./mvnw spring-boot:run"]
+
+volumes:
+  db_data:

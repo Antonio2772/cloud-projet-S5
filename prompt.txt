@@ -1,0 +1,139 @@
+/* ======================================================================== */
+/* ======================================================================== */
+/* ======================================================================== */
+
+
+add this functionnality to my spring boot web service backend ... i have an api endpoint to make a transaction (deposit or withdrawal). I want to add an email validation functionnality to validate the transaction, i've already done the same thing with my laravel backend web service using SMTP to send an email to the user to reset his login attempts ... i want you to do the same thing but to validate an user transaction ... When an user make a transaction, a link is sent to his email and when he click this mail his transaction is validated ... i'm giving you the laravel web service so that you can take it as an example and do the same thing but in spring boot. Here is the db scheme for clarity : 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    user_name VARCHAR(255) NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
+    user_password VARCHAR(255) NOT NULL,
+    user_birthday DATE NOT NULL,
+    token_last_used_at TIMESTAMP,
+    token_expires_at TIMESTAMP,
+    token VARCHAR(255)
+);
+
+ALTER TABLE users
+ADD COLUMN email_verification_code VARCHAR(255) NULL,
+ADD COLUMN verification_code_expires_at TIMESTAMP NULL;
+
+ALTER TABLE users
+ADD COLUMN email_verified_at TIMESTAMP NULL;
+
+ALTER TABLE users
+ADD COLUMN login_attempts INT DEFAULT 0,
+ADD COLUMN last_login_attempt_at TIMESTAMP NULL,
+ADD COLUMN reset_attempts_token VARCHAR(255) NULL,
+ADD COLUMN reset_attempts_token_expires_at TIMESTAMP NULL;
+
+ALTER TABLE users
+ADD COLUMN verification_attempts INT DEFAULT 0,
+ADD COLUMN last_verification_attempt_at TIMESTAMP NULL,
+ADD COLUMN reset_verification_attempts_token VARCHAR(255) NULL,
+ADD COLUMN reset_verification_attempts_token_expires_at TIMESTAMP NULL;
+
+ALTER TABLE users
+ADD COLUMN role VARCHAR(255); 
+
+CREATE TABLE transactions (
+    id SERIAL PRIMARY KEY,
+    id_user INT NOT NULL REFERENCES users(id),
+    deposit DECIMAL(10, 2) NOT NULL,
+    withdrawal DECIMAL(10, 2) NOT NULL,
+    date_transaction TIMESTAMP NOT NULL  
+);
+
+/* ======================================================================== */
+/* ======================================================================== */
+/* ======================================================================== */
+
+create a VueJs component with a <form> to make a transaction. Use the Api endpoint in the Spring-boot backend: TransactionController ... Here is the JSON and the link that the API need to receive : 
+
+POST http://localhost:8099/api/transactions
+{
+    "userId": 15,
+    "deposit": 7000.00,
+    "withdrawal": 0.00,
+    "dateTransaction": "2024-12-28T10:30:00"
+} 
+
+and here is the response form the server : 
+{
+    "status": "success",
+    "message": "Transaction created successfully. Please check your email to validate the transaction.",
+    "data": {
+        "id": 10,
+        "userId": 15,
+        "deposit": 7000.0,
+        "withdrawal": 0.0,
+        "dateTransaction": "2024-12-28T10:30:00",
+        "validationToken": "8424e96e-ff54-499f-b781-995d6e8c8579",
+        "validationTokenExpiresAt": "2024-12-28T20:30:12.9427937",
+        "validatedAt": null,
+        "validated": false
+    }
+}
+
+i need you to display the "message" and the "status" to the form after the submission. 
+Add radio button "deposit" or "withdrawal" to the form ... Use bootstrap and font awesome icons to enhance the style. 
+
+Add a link to the Dashboard sidebar to access the transaction form, you need to update router/index,js too ...  
+
+/* ======================================================================== */
+/* ======================================================================== */
+/* ======================================================================== */
+
+create a VueJs component with a <form> to make a crypto transaction by using the spring boot api endpoint present in the CryptoTransactionController  ... Here is the JSON and the link that the API need to receive : 
+POST http://localhost:8099/api/crypto-transactions
+{
+    "userId": 15,
+    "crypto": { "id": 5 },
+    "isSale": true,
+    "isPurchase": false,
+    "quantity": 10.5,
+    "dateTransaction": "2024-12-29T10:30:00"
+}
+
+and here is the response form the server : 
+{
+    "status": "success",
+    "message": "Crypto transaction processed successfully",
+    "data": {
+        "id": 8,
+        "userId": 15,
+        "crypto": {
+            "id": 1,
+            "label": "Bitcoin"
+        },
+        "isSale": false,
+        "isPurchase": true,
+        "quantity": 7.0,
+        "dateTransaction": "2024-12-29T10:30:00"
+    }
+}
+
+i need you to display the "message" and the "status" to the form after the submission. 
+Add radio button "sale" or "purchase" to the form ... Use bootstrap and font awesome icons to enhance the style. 
+
+Add a link to the Dashboard sidebar to access the crypto transaction form, you need to update router/index,js too ...  
+
+
+
+/* ======================================================================== */
+/* ======================================================================== */
+/* ======================================================================== */
+
+i have spring boot web service, add a solde checking before validating a crypto transaction to check if the current solde of the user is enough for the transaction ... if not return a detailled error message to the JSON ... use the v_user_current_solde view to get the user sold ... 
+CREATE OR REPLACE VIEW v_user_current_solde AS
+SELECT
+    u.id AS user_id,
+    u.user_name AS user_name,
+    COALESCE(SUM(t.deposit), 0) - COALESCE(SUM(t.withdrawal), 0) AS current_solde
+FROM
+    users u
+LEFT JOIN
+    transactions t ON u.id = t.id_user
+GROUP BY
+    u.id, u.user_name;

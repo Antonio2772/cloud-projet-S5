@@ -1,0 +1,44 @@
+### ================================================
+### TODO ==========================================   
+### ================================================
+
+db: 
+    - MCD 
+    - data 
+
+env: 
+    - docker file for each layer 
+    - docker-compose to run the whole app
+
+livrable: 
+    - collections postman
+    - update read-me 
+    - code sources without vendor and node_modules
+    - todo list with excel
+
+### ================================================
+### FIX ==========================================   
+### ================================================
+
+Laravel: 
+    - Carbon::now()
+        -> DateNow() of SpringBoot is correct
+
+    - Login Token expiration 
+
+Email link verification: 
+    - redirect back to the app after link verification
+
+### ================================================
+### DONE ==========================================   
+### ================================================
+
+VueJS + Spring-Boot: 
+    - generation cours crypto aleatoires
+    - page d’évolution graphique d’un cryptomonnaie
+    - page contenant les cours en temps réel (mise à jour tous les 10 secondes)
+    - Transaction Cash + validation mail
+    - Transaction cryptomonnaie (Sell & Purchase)
+    - Liste Transaction cryptomonnaie de tous les users
+    - When buying a crypto, check if `fond` is enough for the transaction
+    - Consultation Cash de l'user connecté  
